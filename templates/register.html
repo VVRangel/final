@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width: 400px; margin: 60px auto;">
+    <div class="card" style="border-color: var(--neon-purple);">
+        <h2 style="text-align: center; color: var(--neon-purple); margin-bottom: 20px;">📝 Create Vault Account</h2>
+        
+        <form method="POST" action="/register">
+            <div style="margin-bottom: 15px;">
+                <label for="username">Choose Contestant Name</label>
+                <input type="text" id="username" name="username" placeholder="Username..." required autocomplete="off">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="password">Create Security PIN / Password</label>
+                <input type="password" id="password" name="password" placeholder="Password..." required>
+            </div>
+            
+            <button type="submit" class="btn btn-purple" style="width: 100%;">Establish Profile</button>
+        </form>
+        
+        <p style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: #94a3b8;">
+            Already registered? <a href="/login" style="color: var(--neon-blue);">Sign In Here</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}

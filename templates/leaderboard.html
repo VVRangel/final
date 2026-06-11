@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1>🏆 High Score Leaderboards</h1>
+    <a href="/" class="btn" style="padding: 8px 16px;">Back Home</a>
+</div>
+
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap:20px;">
+    <!-- MATCH SCORES RENDERING BANNER -->
+    <div>
+        <h3 style="color: var(--neon-blue); border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom: 8px;">🎮 Top Single Matches</h3>
+        {% if scores %}
+            {% for s in scores %}
+                <div class="card" style="padding: 14px 18px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <b>#{{ loop.index }} {{ s.name }}</b>
+                        <div style="font-size:0.8rem; color:#94a3b8; margin-top:2px;">
+                            Word: <span style="font-family: monospace; color:var(--neon-green);">{{ s.word.upper() }}</span> | Turns: {{ s.attempts }}
+                        </div>
+                    </div>
+                    <strong style="color: #eab308;">💰 {{ s.money }}</strong>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#64748b; font-style:italic;">No logged match score entries yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- META INVENTORY RANKS TRACKER -->
+    <div>
+        <h3 style="color: var(--neon-purple); border-bottom: 1px solid rgba(192,132,252,0.2); padding-bottom: 8px;">✨ Top Vault Profiles</h3>
+        {% if profiles %}
+            {% for p in profiles %}
+                <div class="card" style="padding: 14px 18px; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center; border-color: rgba(192,132,252,0.15)">
+                    <div style="flex-grow:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+                            <b>#{{ loop.index }} {{ p.name }}</b>
+                            <strong style="color: var(--neon-purple);">⭐ {{ p.tokens }}</strong>
+                        </div>
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap; font-size: 0.7rem;">
+                            {% if p.perk_wallet %}<span style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">💵 Wallet: x{{ p.perk_wallet }}</span>{% endif %}
+                            {% if p.perk_shield %}<span style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">🛡️ Shield: x{{ p.perk_shield }}</span>{% endif %}
+                            {% if p.perk_discount %}<span style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">💳 VIP: x{{ p.perk_discount }}</span>{% endif %}
+                            {% if p.perk_charm %}<span style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">✨ Charm: x{{ p.perk_charm }}</span>{% endif %}
+                            {% if p.perk_extender %}<span style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">⏳ Turns: x{{ p.perk_extender }}</span>{% endif %}
+                            {% if p.perk_contract %}<span style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">📜 Mult: x{{ p.perk_contract }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#64748b; font-style:italic;">No profiles established yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

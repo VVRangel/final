@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>📺 Main Board Arena</h2>
+    <a href="/" style="color: #94a3b8; font-size: 0.9rem;">Abandon Run</a>
+</div>
+
+<div class="card" style="text-align: center; padding: 40px 20px;">
+    <h1 style="font-size: 3rem; letter-spacing: 6px; margin: 0 0 20px 0; font-family: monospace;">{{ masked }}</h1>
+
+    <div style="display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; margin-top: 10px;">
+        <div>
+            <span style="color: #94a3b8; display:block; font-size:0.85rem; text-transform:uppercase;">Bank Cash Balance</span>
+            <strong style="color: #eab308; font-size: 1.5rem;">💰 {{ money }}</strong>
+        </div>
+        <div>
+            <span style="color: #94a3b8; display:block; font-size:0.85rem; text-transform:uppercase;">Active Protection</span>
+            <strong style="color: var(--neon-orange); font-size: 1.5rem;">🛡️ {{ shields }} Charges</strong>
+        </div>
+        <div>
+            <span style="color: #94a3b8; display:block; font-size:0.85rem; text-transform:uppercase;">Board Turn Actions</span>
+            <strong style="color: var(--neon-blue); font-size: 1.5rem;">🎯 {{ attempts }}</strong>
+        </div>
+    </div>
+
+    {% if hint %}
+        <div style="margin-top: 20px; background: rgba(56,189,248,0.1); padding: 10px; border-radius:8px; color: var(--neon-blue); font-size:0.9rem;">
+            {{ hint }}
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3 style="margin-bottom:10px; font-size: 1rem; color: #94a3b8; text-transform: uppercase;">Guessed Letters Repository</h3>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; min-height: 34px; align-items: center;">
+        {% if guessed_letters %}
+            {% for letter in guessed_letters %}
+                <span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 6px; font-family: monospace; font-weight: bold; color: var(--neon-blue);">
+                    {{ letter }}
+                </span>
+            {% endfor %}
+        {% else %}
+            <span style="color: #64748b; font-style: italic; font-size: 0.9rem;">No letters guessed yet. Take a spin or type below!</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="text-align: center;">
+    <h3>Action Option A: Test Your Luck</h3>
+    <a href="/spin" class="btn btn-spin" style="width:80%;">🎡 Spin The Wheel (+1 Turn)</a>
+</div>
+
+<div class="card">
+    <h3>Action Option B: Solve Puzzle Character</h3>
+    <form method="POST" action="/guess" style="display: flex; gap: 10px; align-items: center;">
+        <input name="letter" maxlength="1" placeholder="Type a character..." autocomplete="off" style="margin:0; flex-grow: 2;" required>
+        <button class="btn" style="white-space: nowrap;">Guess Letter</button>
+    </form>
+</div>
+
+<!-- IN-GAME STORE SYSTEM INFRASTRUCTURE WITH DISCOUNT RENDERING SUPPORT -->
+<div class="card">
+    <h3>🛒 In-Game Show Shop</h3>
+    <p style="color:#94a3b8; font-size:0.85rem; margin-top:-8px;">Spend cash reserves gathered in this specific run to buy survival aids or answer leaks</p>
+
+    <div class="shop">
+        <div class="shop-card">
+            <h4>🔮 Vowel Pass</h4>
+            <p>Instantly reveals all matching instances of a random hidden vowel.</p>
+            <a href="/buy/vowel" class="btn btn-green">Buy ({{ prices.vowel }})</a>
+        </div>
+        <div class="shop-card">
+            <h4>💡 Shop Hint</h4>
+            <p>Reveals clues checking for either custom vowels or structural starting characters.</p>
+            <a href="/buy/hint" class="btn btn-green">Buy ({{ prices.hint }})</a>
+        </div>
+        <div class="shop-card">
+            <h4>📉 Consolation Prize</h4>
+            <p>Fixes the score books by dropping your total attempt count by 3 turns.</p>
+            <a href="/buy/consolation" class="btn btn-green">Buy ({{ prices.consolation }})</a>
+        </div>
+        <div class="shop-card">
+            <h4>🛡️ Safety Shield</h4>
+            <p>Safeguards your bank balance against taking damage on the next "LOSE" spin.</p>
+            <a href="/buy/insurance" class="btn btn-orange">Buy ({{ prices.insurance }})</a>
+        </div>
+        <div class="shop-card">
+            <h4>🕵️ Spy Glass</h4>
+            <p>Test a letter safely without burning an official guess action turn.</p>
+            <form method="POST" action="/buy/spy" style="display:flex; gap: 4px; margin-top: auto;">
+                <input type="text" name="spy_letter" maxlength="1" placeholder="Key" style="padding: 6px; margin: 0; text-align: center;" required>
+                <button class="btn btn-orange" style="padding: 6px 12px; font-size: 0.8rem;">Check ({{ prices.spy }})</button>
+            </form>
+        </div>
+        <div class="shop-card">
+            <h4>🔤 Direct Reveal</h4>
+            <p>Chooses a random hidden letter on the board and fills it in immediately.</p>
+            <a href="/buy/reveal" class="btn btn-orange">Buy ({{ prices.reveal }})</a>
+        </div>
+        <div class="shop-card">
+            <h4>🔥 Balance Double</h4>
+            <p>Guaranteed mathematical absolute doubling of your current cash on hand.</p>
+            <a href="/buy/double" class="btn btn-red">Buy ({{ prices.double }})</a>
+        </div>
+        <div class="shop-card">
+            <h4>🎲 Double Down</h4>
+            <p>Risks cash. 50% chance to fail completely or triple your asset cost investment.</p>
+            <a href="/buy/doubledown" class="btn btn-red">Buy ({{ prices.doubledown }})</a>
+        </div>
+        <div class="shop-card" style="border: 2px solid #eab308; background: rgba(234,179,8,0.05);">
+            <h4 style="color: #eab308;">👑 Instant Solve</h4>
+            <p>Force system bypass overrides to complete the current target word puzzle.</p>
+            <a href="/buy/solve" class="btn btn-red" style="box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">Buy ({{ prices.solve }})</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

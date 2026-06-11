@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card" style="text-align: center; padding: 40px 20px; border-color: var(--neon-green);">
+    <h1 style="color: var(--neon-green); font-size: 3rem; margin-bottom: 5px;">🎉 VICTORY!</h1>
+    <p style="color: #94a3b8; margin-bottom: 20px;">You solved the mystery board puzzle!</p>
+
+    <div style="background: rgba(46, 222, 128, 0.15); border: 1px solid var(--neon-green); padding: 15px; border-radius: 10px; max-width: 350px; margin: 0 auto 20px auto;">
+        <h3 style="color: var(--neon-green); margin:0;">⭐ Meta Reward Payout</h3>
+        <p style="margin: 5px 0 0 0; font-size: 1.1rem;">Earned <b>{{ results.tokens_earned }} Star Tokens</b> for your profile account!</p>
+    </div>
+
+    <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px; max-width: 350px; margin: 0 auto 30px auto; text-align: left;">
+        <p style="margin: 8px 0;"><strong>Contestant:</strong> <span style="float:right; color: var(--neon-blue);">{{ results.name }}</span></p>
+        <p style="margin: 8px 0;"><strong>Solved Word:</strong> <span style="float:right; color: var(--neon-green); font-family: monospace; font-weight:bold;">{{ results.word }}</span></p>
+        <p style="margin: 8px 0;"><strong>Final Cash Prize:</strong> <span style="float:right; color: #eab308; font-weight:bold;">💰 {{ results.money }}</span></p>
+        <p style="margin: 8px 0;"><strong>Board Actions Applied:</strong> <span style="float:right; color: #a78bfa;">{{ results.attempts }} turns</span></p>
+    </div>
+
+    <div style="display:flex; gap:15px; justify-content: center;">
+        <a href="/" class="btn">Return Home Menu</a>
+        <a href="/leaderboard" class="btn btn-spin">Check Leaderboard</a>
+    </div>
+</div>
+
+{% endblock %}
