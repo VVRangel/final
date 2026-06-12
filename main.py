@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import os
-import sqlite3
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "super-secure-game-vault-2026")
@@ -26,7 +26,7 @@ class Score(db.Model):
 
 class PlayerProfile(db.Model):
     name = db.Column(db.String(50), primary_key=True)
-    password_hash = db.Column(db.String(256), nullable=False)  # Stores encrypted passwords securely
+    password_hash = db.Column(db.String(256), nullable=False)
     tokens = db.Column(db.Integer, default=0, nullable=False)
 
     # STACKABLE PERK COUNTERS
@@ -53,15 +53,12 @@ BASE_SHOP = {
 }
 
 META_SHOP_ITEMS = {
-    "wallet": {"name": "Wallet Boost", "cost": 4, "desc": "Adds +$200 to your starting bank configuration per stack."},
-    "shield": {"name": "Shield Multi-Pack", "cost": 6, "desc": "Start runs with extra safety shields stacked up."},
-    "discount": {"name": "VIP Discount Pass", "cost": 9,
-                 "desc": "Saves 10% off on all inside shop pricing tiers. Max 5 stacks."},
-    "charm": {"name": "Lucky Spin Charm", "cost": 5, "desc": "Adds +100 cash payouts to positive wheel destinations."},
-    "extender": {"name": "Turn Extender Core", "cost": 7,
-                 "desc": "Reduces your initial starting attempts count by 2 slots."},
-    "contract": {"name": "Token Multiplier", "cost": 10,
-                 "desc": "Earn +15% more permanent Star Tokens upon solving words."}
+    "wallet": {"name": "Wallet Boost", "base_cost": 4, "desc": "Permanently begin all future games with +200 extra cash reserves per item stack."},
+    "shield": {"name": "Shield Pack", "base_cost": 6, "desc": "Start matches with safety shields pre-loaded to eat 'LOSE' wheel sectors."},
+    "discount": {"name": "VIP Pass", "base_cost": 9, "desc": "Save 10% on live in-game show item prices per stack. Maximum 5 stacks."},
+    "charm": {"name": "Lucky Charm", "base_cost": 5, "desc": "Adds a guaranteed flat +100 cash to all successful wheel currency landings."},
+    "extender": {"name": "Turn Extender", "base_cost": 7, "desc": "Grants you -2 free turns at the start of a match. Great for high scoreboard rankings!"},
+    "contract": {"name": "Token Contract", "base_cost": 10, "desc": "Get a +15% multiplier on final Star Token rewards when solving puzzles."}
 }
 
 
@@ -72,7 +69,7 @@ def mask(word, guessed):
 
 
 def spin_wheel():
-    return random.choice([0, 150, 300, 450, 600, "LOSE", "HINT", "DOUBLE"])
+    return random.choice([0, 50, 100, 200, "LOSE", "LOSE", "BANKRUPT", "HINT"])
 
 
 def get_live_shop_prices():
@@ -84,14 +81,52 @@ def get_live_shop_prices():
     return prices
 
 
+def get_player_perk_count(profile, perk_type):
+    """Helper method to return the current integer stack count of a perk."""
+    perk_map = {
+        "wallet": profile.perk_wallet,
+        "shield": profile.perk_shield,
+        "discount": profile.perk_discount,
+        "charm": profile.perk_charm,
+        "extender": profile.perk_extender,
+        "contract": profile.perk_contract
+    }
+    return perk_map.get(perk_type, 0)
+
+
 # ---------------- ROUTES ---------------- #
 
 @app.route("/")
 def home():
     profile = None
+    scaled_meta_shop = {}
+
     if "user_id" in session:
         profile = PlayerProfile.query.get(session["user_id"])
-    return render_template("home.html", current_profile=profile)
+        if profile:
+            # Dynamically calculate inflating token costs for the UI template display
+            for key, data in META_SHOP_ITEMS.items():
+                current_stacks = get_player_perk_count(profile, key)
+                # Cost increases exponentially: Base * (1.5 ^ stacks)
+                inflated_cost = int(data["base_cost"] * (1.5 ** current_stacks))
+
+                scaled_meta_shop[key] = {
+                    "name": data["name"],
+                    "desc": data["desc"],
+                    "cost": inflated_cost,
+                    "stacks": current_stacks
+                }
+    else:
+        # Fallback view format if not authenticated
+        for key, data in META_SHOP_ITEMS.items():
+            scaled_meta_shop[key] = {
+                "name": data["name"],
+                "desc": data["desc"],
+                "cost": data["base_cost"],
+                "stacks": 0
+            }
+
+    return render_template("home.html", current_profile=profile, meta_shop=scaled_meta_shop)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -109,9 +144,8 @@ def register():
             flash("❌ Username already taken! Choose another.", "error")
             return redirect(url_for("register"))
 
-        # Create new user with safe hashed password
         hashed_pw = generate_password_hash(password)
-        new_player = PlayerProfile(name=username, password_hash=hashed_pw, tokens=10)  # Starting bonus tokens!
+        new_player = PlayerProfile(name=username, password_hash=hashed_pw, tokens=10)
         db.session.add(new_player)
         db.session.commit()
 
@@ -142,7 +176,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.pop("user_id", None)
-    session.pop("word", None)  # Clean up active game data if any
+    session.pop("word", None)
     flash("🔒 Logged out successfully.", "info")
     return redirect(url_for("home"))
 
@@ -177,6 +211,8 @@ def start():
     session["perk_discount_stacks"] = profile.perk_discount
     session["perk_contract_multiplier"] = 1.0 + (profile.perk_contract * 0.15)
 
+    session.pop("next_spin_ready", None)
+
     return redirect(url_for("game"))
 
 
@@ -190,18 +226,19 @@ def meta_buy(perk_type):
     if perk_type not in META_SHOP_ITEMS:
         return redirect(url_for("home"))
 
-    cost = META_SHOP_ITEMS[perk_type]["cost"]
+    current_stacks = get_player_perk_count(profile, perk_type)
+    base_cost = META_SHOP_ITEMS[perk_type]["base_cost"]
+    inflated_cost = int(base_cost * (1.5 ** current_stacks))
 
-    if profile.tokens < cost:
-        flash(f"❌ Insufficient Star Tokens! Code cost requires {cost} tokens.", "error")
+    if profile.tokens < inflated_cost:
+        flash(f"❌ Insufficient Star Tokens! This stack level requires {inflated_cost} tokens.", "error")
         return redirect(url_for("home"))
 
     if perk_type == "discount" and profile.perk_discount >= 5:
         flash("⚠️ VIP Discount Pass has reached its maximum capability stack limit (5)!", "warning")
         return redirect(url_for("home"))
 
-    # Deduct and increment stack count
-    profile.tokens -= cost
+    profile.tokens -= inflated_cost
     if perk_type == "wallet":
         profile.perk_wallet += 1
     elif perk_type == "shield":
@@ -216,13 +253,30 @@ def meta_buy(perk_type):
         profile.perk_contract += 1
 
     db.session.commit()
-    flash(f"🎉 Purchased 1 stack of {META_SHOP_ITEMS[perk_type]['name']}!", "success")
+
+    next_cost = int(base_cost * (1.5 ** (current_stacks + 1)))
+    flash(f"🎉 Upgraded! Stack count is now {current_stacks + 1}. Next level inflation milestone: {next_cost} Star Tokens.", "success")
     return redirect(url_for("home"))
 
 
 @app.route("/spin")
 def spin():
     if "word" not in session: return redirect(url_for("home"))
+
+    # --- 30-SECOND COOLDOWN SYSTEM ---
+    now = datetime.now()
+    next_allowed_str = session.get("next_spin_ready")
+
+    if next_allowed_str:
+        next_allowed_dt = datetime.fromisoformat(next_allowed_str)
+        if now < next_allowed_dt:
+            time_remaining = next_allowed_dt - now
+            seconds_left = int(time_remaining.total_seconds())
+            flash(f"⏳ The wheel mechanism is locked! Wait {seconds_left}s before spinning again.", "warning")
+            return redirect(url_for("game"))
+
+    session["next_spin_ready"] = (now + timedelta(seconds=30)).isoformat()
+    # ----------------------------------
 
     session["attempts"] += 1
     result = spin_wheel()
@@ -232,13 +286,19 @@ def spin():
             session["shields_left"] -= 1
             flash(f"🛡️ Shield Absorbed! ({session['shields_left']} remaining)", "info")
         else:
-            session["money"] = max(0, session["money"] - 250)
-            flash("❌ Unlucky Wheel Stop! You lost 250 coins!", "error")
+            session["money"] = max(0, session["money"] - 400)
+            flash("❌ Brutal Turn! You hit LOSE and dropped 400 coins!", "error")
+
+    elif result == "BANKRUPT":
+        if session.get("shields_left", 0) > 0:
+            session["shields_left"] -= 1
+            flash("🛡️ Shield shattered! Bankrupt penalty deflected completely.", "info")
+        else:
+            session["money"] = 0
+            flash("💥 Total Catastrophe! You hit BANKRUPT and lost your entire balance!", "error")
+
     elif result == "HINT":
         flash(f"💡 Wheel Hint: The word starts with '{session['word'][0].upper()}'", "info")
-    elif result == "DOUBLE":
-        session["money"] *= 2
-        flash("🔥 JACKPOT! Your bank balance doubled!", "success")
     else:
         bonus = session.get("perk_charm_bonus", 0)
         session["money"] += (result + bonus)
@@ -385,20 +445,14 @@ def leaderboard():
 
 # ---------------- UNIVERSAL ROBUST DATABASE HOTFIX ---------------- #
 with app.app_context():
-    # Force drop the table structure if it fails structural validation
     try:
-        # If this test query fails, it means one of the columns (like perk_charm) is missing
         PlayerProfile.query.limit(1).all()
     except Exception:
         print("⚠️ Outdated or broken schema detected. Rebuilding all tables clean...")
         db.drop_all()
 
-    # Recreate the tables cleanly with every column perfectly in place
     db.create_all()
     print("🏁 Success: Database layout fully synchronized and matching models!")
 
-
 if __name__ == "__main__":
     app.run(debug=True)
-else:
-    pass

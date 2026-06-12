@@ -6,7 +6,21 @@
     <p style="color: #94a3b8;">Amass infinite power by stacking meta-shop items across runs!</p>
 </div>
 
-<!-- ACCOUNT CONTROL BANNER -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div style="margin-bottom: 25px; display: flex; flex-direction: column; gap: 10px;">
+            {% for category, message in messages %}
+                <div class="card" style="padding: 12px 20px; border-radius: 8px; font-weight: 500; margin: 0;
+                    {% if category == 'success' %} border-color: #10b981; background: rgba(16, 185, 129, 0.15); color: #34d399;
+                    {% elif category == 'error' %} border-color: #f43f5e; background: rgba(244, 63, 94, 0.15); color: #fb7185;
+                    {% else %} border-color: #eab308; background: rgba(234, 179, 8, 0.15); color: #facc15; {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
 <div class="card" style="border-color: #a855f7; background: rgba(30, 20, 50, 0.45);">
     {% if current_profile %}
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
@@ -20,22 +34,22 @@
         <h4 style="margin:12px 0 6px 0; font-size:0.9rem; text-transform:uppercase; color:#94a3b8;">Your Current Stacked Quantities:</h4>
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
             <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; display:flex; justify-content:space-between;">
-                <span>💵 Wallet Boosters:</span> <b style="color:var(--neon-green)">x{{ current_profile.perk_wallet }}</b>
+                <span>💵 Wallet Boosters:</span> <b style="color:var(--neon-green)">x{{ meta_shop.wallet.stacks }}</b>
             </div>
             <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; display:flex; justify-content:space-between;">
-                <span>🛡️ Starting Shields:</span> <b style="color:var(--neon-green)">x{{ current_profile.perk_shield }}</b>
+                <span>🛡️ Starting Shields:</span> <b style="color:var(--neon-green)">x{{ meta_shop.shield.stacks }}</b>
             </div>
             <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; display:flex; justify-content:space-between;">
-                <span>💳 VIP Pass Stacks:</span> <b style="color:var(--neon-green)">x{{ current_profile.perk_discount }}/5</b>
+                <span>💳 VIP Pass Stacks:</span> <b style="color:var(--neon-green)">x{{ meta_shop.discount.stacks }}/5</b>
             </div>
             <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; display:flex; justify-content:space-between;">
-                <span>✨ Lucky Charms:</span> <b style="color:var(--neon-green)">x{{ current_profile.perk_charm }}</b>
+                <span>✨ Lucky Charms:</span> <b style="color:var(--neon-green)">x{{ meta_shop.charm.stacks }}</b>
             </div>
             <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; display:flex; justify-content:space-between;">
-                <span>⏳ Turn Extenders:</span> <b style="color:var(--neon-green)">x{{ current_profile.perk_extender }}</b>
+                <span>⏳ Turn Extenders:</span> <b style="color:var(--neon-green)">x{{ meta_shop.extender.stacks }}</b>
             </div>
             <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; display:flex; justify-content:space-between;">
-                <span>📜 Token Contracts:</span> <b style="color:var(--neon-green)">x{{ current_profile.perk_contract }}</b>
+                <span>📜 Token Contracts:</span> <b style="color:var(--neon-green)">x{{ meta_shop.contract.stacks }}</b>
             </div>
         </div>
     {% else %}
@@ -50,44 +64,46 @@
     {% endif %}
 </div>
 
-<!-- META SHOP POWER-UP PRODUCTS SELECTION MATRIX -->
 <div class="card" style="border-color: var(--neon-purple);">
-    <h3 style="color: var(--neon-purple);">🛒 High-Roller Meta Power-Up Shop</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="color: var(--neon-purple); margin: 0;">🛒 High-Roller Meta Power-Up Shop</h3>
+        <span style="font-size: 0.8rem; font-family: monospace; color: #64748b;">Compounding Cost Matrix Applied (x1.5 / Stack)</span>
+    </div>
+
     <div class="shop">
-        <div class="shop-card" style="border-color: rgba(192, 132, 252, 0.25);">
-            <h4>💵 Wallet Boost</h4>
-            <p>Permanently begin all future games with +200 extra cash reserves per item stack.</p>
-            <a href="/meta-buy/wallet" class="btn btn-purple" {% if not current_profile %}style="opacity:0.5; pointer-events:none;"{% endif %}>Buy (4 ⭐)</a>
-        </div>
-        <div class="shop-card" style="border-color: rgba(192, 132, 252, 0.25);">
-            <h4>🛡️ Shield Pack</h4>
-            <p>Start matches with safety shields pre-loaded to eat "LOSE" wheel sectors.</p>
-            <a href="/meta-buy/shield" class="btn btn-purple" {% if not current_profile %}style="opacity:0.5; pointer-events:none;"{% endif %}>Buy (6 ⭐)</a>
-        </div>
-        <div class="shop-card" style="border-color: rgba(192, 132, 252, 0.25);">
-            <h4>💳 VIP Pass</h4>
-            <p>Save 10% on live in-game show item prices per stack. Maximum 5 stacks.</p>
-            <a href="/meta-buy/discount" class="btn btn-purple" {% if not current_profile %}style="opacity:0.5; pointer-events:none;"{% endif %}>Buy (9 ⭐)</a>
-        </div>
-        <div class="shop-card" style="border-color: rgba(192, 132, 252, 0.25);">
-            <h4>✨ Lucky Charm</h4>
-            <p>Adds a guaranteed flat +100 cash to all successful wheel currency landings.</p>
-            <a href="/meta-buy/charm" class="btn btn-purple" {% if not current_profile %}style="opacity:0.5; pointer-events:none;"{% endif %}>Buy (5 ⭐)</a>
-        </div>
-        <div class="shop-card" style="border-color: rgba(192, 132, 252, 0.25);">
-            <h4>⏳ Turn Extender</h4>
-            <p>Grants you -2 free turns at the start of a match. Great for high scoreboard rankings!</p>
-            <a href="/meta-buy/extender" class="btn btn-purple" {% if not current_profile %}style="opacity:0.5; pointer-events:none;"{% endif %}>Buy (7 ⭐)</a>
-        </div>
-        <div class="shop-card" style="border-color: rgba(192, 132, 252, 0.25);">
-            <h4>📜 Token Contract</h4>
-            <p>Get a +15% multiplier on final Star Token rewards when solving puzzles.</p>
-            <a href="/meta-buy/contract" class="btn btn-purple" {% if not current_profile %}style="opacity:0.5; pointer-events:none;"{% endif %}>Buy (10 ⭐)</a>
-        </div>
+        {% for key, perk in meta_shop.items() %}
+            <div class="shop-card" style="border-color: rgba(192, 132, 252, 0.25); display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <h4 style="margin: 0;">
+                            {% if key == 'wallet' %}💵{% elif key == 'shield' %}🛡️{% elif key == 'discount' %}💳{% elif key == 'charm' %}✨{% elif key == 'extender' %}⏳{% else %}📜{% endif %}
+                            {{ perk.name }}
+                        </h4>
+                        <span style="font-size: 0.75rem; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; color: #a78bfa;">
+                            Lvl {{ perk.stacks }}
+                        </span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #94a3b8; min-height: 50px;">{{ perk.desc }}</p>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    {% if current_profile %}
+                        {% if key == 'discount' and perk.stacks >= 5 %}
+                            <button disabled class="btn" style="width: 100%; opacity: 0.3; cursor: not-allowed; text-transform: uppercase; font-size: 0.8rem;">MAX TIER REACHED</button>
+                        {% elif current_profile.tokens >= perk.cost %}
+                            <a href="/meta-buy/{{ key }}" class="btn btn-purple" style="width: 100%; text-align: center; display: block; box-sizing: border-box;">Upgrade ({{ perk.cost }} ⭐)</a>
+                        {% else %}
+                            <button disabled class="btn" style="width: 100%; opacity: 0.4; cursor: not-allowed; text-align: center;">Requires {{ perk.cost }} ⭐</button>
+                        {% endif %}
+                    {% else %}
+                        <a href="/login" class="btn btn-purple" style="width: 100%; text-align: center; display: block; box-sizing: border-box; opacity: 0.5; pointer-events: none;">Login to Buy</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
     </div>
 </div>
 
-<!-- MATCHMAKING SELECTION CARD -->
 {% if current_profile %}
 <div class="card">
     <form method="POST" action="/start">
@@ -108,8 +124,8 @@
 </div>
 {% endif %}
 
-<div style="text-align: center;">
-    <a href="/leaderboard">🏆 View Global High Scores & Profiles</a>
+<div style="text-align: center; margin-top: 20px;">
+    <a href="/leaderboard" style="color: var(--neon-blue); font-weight: bold; text-decoration: none;">🏆 View Global High Scores & Profiles</a>
 </div>
 
 <script>
