@@ -40,11 +40,33 @@ class PlayerProfile(db.Model):
 
 # ---------------- GAME CONFIGURATION ---------------- #
 
+# Massive expansion: 100+ highly thematic words categorised by complexity for the difficulty algorithm
 WORDS = [
-    "cat", "dog", "sun", "tree", "car", "python", "rocket",
-    "forest", "planet", "algorithm", "quantum", "horizon",
-    "matrix", "cyber", "arcade", "victory", "blitz", "crypt",
-    "pixel", "wizard", "nebula", "glitch", "cobalt"
+    # Casual / Short (Length <= 3)
+    "cat", "dog", "sun", "fox", "zen", "sky", "run", "gem", "hex", "orb",
+    "ice", "fire", "key", "bot", "cpu", "ram", "bug", "ace", "fly", "spy",
+    "jwt", "api", "git", "web", "app", "log", "bit", "dev", "vow", "vip",
+
+    # Mid-Tier / Standard (Length 4 to 6)
+    "tree", "car", "neon", "blitz", "crypt", "pixel", "cyber", "arcade",
+    "matrix", "nebula", "glitch", "cobalt", "wizard", "galaxy", "rocket",
+    "forest", "planet", "quasar", "vortex", "plasma", "meteor", "beacon",
+    "vector", "sensor", "tensor", "kernel", "binary", "cipher", "daemon",
+    "bypass", "uplink", "shadow", "knight", "dragon", "phoenix", "titan",
+    "sphinx", "valkyr", "kraken", "golem", "avatar", "potion", "scroll",
+    "legend", "mythos", "ritual", "cosmos", "chrono", "plasma", "fusion",
+
+    # Hardcore / Expert (Length >= 7)
+    "python", "algorithm", "quantum", "horizon", "victory", "supernova",
+    "exoplanet", "constellation", "blackhole", "astronomy", "singularity",
+    "mainframe", "javascript", "blockchain", "encryption", "decryption",
+    "cybernetics", "nanotech", "automation", "simulation", "hologram",
+    "multiverse", "dimensions", "chronicle", "apocalypse", "behemoth",
+    "leviathan", "juggernaut", "immortal", "gladiator", "overdrive",
+    "hyperdrive", "warpcore", "accelerator", "equilibrium", "paradox",
+    "labyrinth", "sanctuary", "cataclysm", "stratosphere", "atmosphere",
+    "subterranean", "metamorphosis", "synchronicity", "cryptography",
+    "teleportation", "bioluminescence", "thermonuclear", "renaissance"
 ]
 
 BASE_SHOP = {
@@ -455,6 +477,6 @@ with app.app_context():
     print("🏁 Success: Database layout fully synchronized and matching models!")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5343245423423342424234001)
 else:
     pass
